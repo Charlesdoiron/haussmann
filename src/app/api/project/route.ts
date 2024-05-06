@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
-import { NextResponse } from 'next/server';
-import { z } from 'zod';
+import { NextRequest, NextResponse } from 'next/server';
+import { z, ZodError } from 'zod';
+import { fromError } from 'zod-validation-error';
 
 export async function POST(request: Request) {
   try {
@@ -12,8 +13,10 @@ export async function POST(request: Request) {
         deadline: z.date(),
       }).parse(body);
     } catch (error) {
-      console.error('Error Zod parsing request body:', error);
-      return new Response('Invalid request body', {
+      const validationError = fromError(error).toString();
+      console.error('Error Zod parsing request body:', validationError);
+
+      return new Response(validationError, {
         status: 400,
       });
     }

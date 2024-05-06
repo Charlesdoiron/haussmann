@@ -1,3 +1,7 @@
 export default function Home() {
-  return <div className='flex h-full flex-col font-app font-medium'>Hello</div>;
+  return (
+    <div className='flex justify-center text-center items-center font-app font-medium h-screen '>
+      Haussmann
+    </div>
+  );
 }
