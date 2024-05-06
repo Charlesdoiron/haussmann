@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
-import { NextRequest, NextResponse } from 'next/server';
-import { z, ZodError } from 'zod';
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
 import { fromError } from 'zod-validation-error';
 
 export async function POST(request: Request) {

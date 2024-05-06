@@ -42,7 +42,10 @@ describe('GET /api/project/:id', () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body).toEqual(projectData);
+    expect(body).toEqual({
+      ok: true,
+      project: projectData,
+    });
     expect(prisma.project.findUnique).toHaveBeenCalledTimes(1);
     expect(prisma.project.findUnique).toHaveBeenCalledWith({ where: { id } });
   });
@@ -59,7 +62,7 @@ describe('GET /api/project/:id', () => {
     const body = await response.json();
 
     expect(response.status).toBe(400);
-    expect(body.message).toBe('Project Not Found!');
+    expect(body.message).toBe('Project not found');
     expect(prisma.project.findUnique).toHaveBeenCalledTimes(1);
     expect(prisma.project.findUnique).toHaveBeenCalledWith({ where: { id } });
   });

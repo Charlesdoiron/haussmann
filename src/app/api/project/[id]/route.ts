@@ -1,5 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { fromError } from 'zod-validation-error';
 
 export async function GET(
   _request: NextRequest,
@@ -15,7 +17,8 @@ export async function GET(
   if (!project) {
     return NextResponse.json(
       {
-        message: 'Project Not Found!',
+        ok: false,
+        message: 'Project not found',
       },
       {
         status: 400,
@@ -23,9 +26,15 @@ export async function GET(
     );
   }
 
-  return NextResponse.json(project, {
-    status: 200,
-  });
+  return NextResponse.json(
+    {
+      ok: true,
+      project,
+    },
+    {
+      status: 200,
+    },
+  );
 }
 
 export async function PUT(
@@ -36,33 +45,61 @@ export async function PUT(
     params: { id: string };
   },
 ) {
-  const id = params.id;
+  try {
+    const id = params.id;
+    const body = await request.json();
+    try {
+      z.object({
+        title: z.string().optional(),
+        description: z.string().optional(),
+        deadline: z.date().optional(),
+      }).parse(body);
+    } catch (error) {
+      const validationError = fromError(error).toString();
+      console.error('Error Zod parsing request body:', validationError);
 
-  const body = await request.json();
+      return new Response(validationError, {
+        status: 400,
+      });
+    }
 
-  const updatedProject = await prisma.project.update({
-    where: {
-      id,
-    },
-    data: {
-      ...body,
-      updateAt: new Date(),
-    },
-  });
+    const updatedProject = await prisma.project.update({
+      where: {
+        id,
+      },
+      data: {
+        ...body,
+        updatedAt: new Date(),
+      },
+    });
 
-  if (!updatedProject) {
+    if (!updatedProject) {
+      return NextResponse.json(
+        {
+          ok: false,
+          message: 'Project not found',
+        },
+        {
+          status: 400,
+        },
+      );
+    }
     return NextResponse.json(
       {
-        message: 'Project Not Found!',
+        ok: true,
+        project: updatedProject,
       },
       {
-        status: 400,
+        status: 200,
       },
     );
+  } catch (error) {
+    console.error('Error updating project:', error);
+    return NextResponse.json(
+      { message: 'Error updating project' },
+      { status: 500 },
+    );
   }
-  return NextResponse.json(updatedProject, {
-    status: 200,
-  });
 }
 
 export async function DELETE(
@@ -79,7 +116,8 @@ export async function DELETE(
   if (!project) {
     return NextResponse.json(
       {
-        message: 'Project Not Found!',
+        ok: false,
+        message: 'Project not found!',
       },
       {
         status: 400,
@@ -88,10 +126,11 @@ export async function DELETE(
   }
   return NextResponse.json(
     {
+      ok: true,
       id,
     },
     {
-      status: 20,
+      status: 200,
     },
   );
 }
